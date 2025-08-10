@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meddent Global Solutions — Sourcing & Delivery</title>
+    <meta name="description" content="UK‑based procurement & delivery partner for medical equipment and consumables. Global sourcing, logistics & insured delivery." />
+
+    <!-- TailwindCSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React 18 + ReactDOM (UMD from CDN) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone to compile JSX in the browser (simple static hosting) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230ea5e9'/%3E%3Ctext x='50' y='58' text-anchor='middle' font-size='50' fill='white' font-family='Arial,Helvetica,sans-serif'%3EM%3C/text%3E%3C/svg%3E" />
+    <style>
+      /* Smooth fonts */
+      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    </style>
+  </head>
+  <body class="bg-white text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react">
+      const { useMemo, useState } = React;
+
+      // Embedded logo (provided by user) as data URI so the page works standalone.
+      const LOGO_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMoAAACIEAAAAAA0Gq0kAAAACXBIWXMAAAsSAAALEgHS3X78AAABmElEQVR4nO3aMW7bQBBF0e0B4QkO0gTqdq4U8bqkQm2wQk2E0lV1A1s2hJp5j5M8Z6c2q/3w2gZtV4w0y9m1rQn3w1c3m6mX0yqD2Fv0cB5z9m7m7+qQ6KJgB3sJx3kq2p2M1mHc1r8m9v2v3w6H2Jkq1oQG0m3W3a3f0fCjvXYrS8iHn0y0+f5yJYVwOqCq8g6h7qkR0v5oHkM3rCw7WvC9m9l6n0mZ1f7b3s7wGqg2vQ0x4k5u2c1Kp8i8p75Q6wW2qXQv3J3z3F1O+Oqnq1Z4h3v3p0c3gYw9l2m9hB7m8rjx9i2Xrj4Qwq4i3qf0QF7tWgJm0Qm8oU9mYzM4g2t9EJmYw7w8C8JqgQw8ZzY8h1FQ3QWg8oA6YtG2C2b8k0f5l2WZC8q2l6v1w3r8yXvJ0Qm0wU9lqQvJ5s1c7qf5s7s9V1d6k4n2mJc8wVx9mO9Z0F6jM1K2cQpWQWlQbJQeJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQhQGJgqQg7fX4EwM8s7cY3x+3g0nD8n1m8t1f1m8j0mU0B6c7jvJ3mTg0f7b2cLWYzLK2+u4n2w3v7c6d+QKk9qI9e49H1m7W2jYzN9T/V2wq2W0m5n0bG7l1c7o6d5nQ+9jI9W0c7g2v7o8b7Q7G7bY8f6s7y2j1V0g7t0JkLmBd1c5vRr2r6d6E7oGmP7H2c9o6c8k8k3X8y3fQ5ms4gAAAP//AwBQF4n3y0hFegAAAABJRU5ErkJggg==";
+
+      // 👉 Add your Web3Forms access key below (free static form backend). Create one at web3forms.com and paste it here.
+      const WEB3FORMS_KEY = "REPLACE_WITH_YOUR_ACCESS_KEY";
+
+      function isValidEmail(s) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s).trim());
+      }
+
+      function MeddentLanding() {
+        const [activeTab, setActiveTab] = useState("machinery");
+        const [items, setItems] = useState([{ id: 1, name: "", quantity: 1, notes: "" }]);
+        const [submitting, setSubmitting] = useState(false);
+        const [result, setResult] = useState(null);
+        const [files, setFiles] = useState([]);
+        const [form, setForm] = useState({
+          fullName: "",
+          email: "",
+          company: "",
+          phone: "",
+          country: "United Kingdom",
+          city: "",
+          deliveryIncoterms: "Door-to-door",
+          agree: false,
+        });
+
+        const addItem = () => {
+          setItems((prev) => [...prev, { id: Date.now(), name: "", quantity: 1, notes: "" }]);
+        };
+
+        const removeItem = (id) => setItems((prev) => prev.filter((i) => i.id !== id));
+
+        const updateItem = (id, key, value) => {
+          setItems((prev) => prev.map((i) => (i.id === id ? { ...i, [key]: value } : i)));
+        };
+
+        const onFileChange = (e) => {
+          const f = Array.from(e.target.files || []);
+          setFiles((prev) => [...prev, ...f]);
+        };
+
+        const summary = useMemo(() => ({ items, files: files.map((f) => f.name), form }), [items, files, form]);
+
+        const quiz = [
+          { q: "What is the primary role of Meddent Global Solutions in the medical supply chain?", a: "Meddent Global Solutions acts as an independent procurement partner (middleman) that sources and delivers medical equipment and consumables to healthcare providers worldwide." },
+          { q: "Which specific services does Meddent Global not provide, and who is responsible for these aspects?", a: "We do not provide installation or operational training. Installation is handled by approved third‑party specialists, and training remains the responsibility of the manufacturer/supplier." },
+          { q: "Name three distinct categories of products that Meddent can source and deliver.", a: "Examples include: diagnostic devices (e.g., dialysis consoles), hospital plants & machinery (e.g., imaging, HVAC/oxygen), and everyday consumables (e.g., PPE, syringes)." },
+          { q: "Describe the 'How it works' process from initial request to delivery.", a: "Client sends requirements (quote builder or upload) → we perform spec & compliance checks → we share quotations & timelines → we coordinate logistics and insured delivery to the destination." },
+          { q: "What is the significance of Meddent being UK‑based?", a: "It indicates our operational hub and adherence to UK regulations, which can increase trust for international clients and clarifies our physical contact location." },
+          { q: "How are shipments protected during delivery?", a: "We coordinate insured shipments as part of logistics, mitigating risk during transit of valuable medical equipment." },
+          { q: "What is 'Aftercare Supply'?", a: "Long‑term provision of consumables and spare parts to keep facilities running smoothly beyond initial procurement and delivery." },
+          { q: "Why use both 'Download summary' and 'Email us' buttons?", a: "Downloading creates a personal JSON record; emailing initiates immediate contact with the request details for quick follow‑up." },
+          { q: "Give two reasons equipment videos are important.", a: "They explain value quickly by showing features/safety and build authenticity (narrated by a Biomedical Scientist), improving conversions." },
+          { q: "What checks happen during 'Sourcing & Vetting'?", a: "Global supplier search, spec matching, and thorough documentation & compliance checks to ensure suitability and legitimacy." },
+        ];
+
+        const essays = [
+          "Analyse the value proposition of Meddent Global Solutions. How does acting as an independent procurement partner benefit healthcare providers, especially internationally?",
+          "Discuss the distinctions between Meddent's core services and third parties/manufacturers. Why is this division important for the model and client expectations?",
+          "Evaluate the strategic importance of Aftercare Supply. How does it drive retention and satisfaction beyond initial delivery?",
+          "From a client's perspective, outline advantages and potential disadvantages of using a procurement partner versus buying directly from manufacturers.",
+          "Meddent positions itself as a capable research assistant and tutor. How do videos and clear process steps support customer confidence and understanding?",
+        ];
+
+        const glossary = [
+          { term: "Aftercare Supply", def: "Long‑term supply of consumables and spares to keep facilities operational after initial delivery." },
+          { term: "Biomedical Scientist", def: "Professional background of the founder; expertise in medical technology and healthcare science." },
+          { term: "Consumables", def: "Everyday items used up in care settings (e.g., PPE, dental supplies, lab reagents, syringes)." },
+          { term: "Door‑to‑door options", def: "Delivery from supplier location directly to the client's destination." },
+          { term: "FES machines", def: "Functional Electrical Stimulation devices used in diagnostics/rehabilitation." },
+          { term: "Global Delivery", def: "Capability to deliver equipment and consumables worldwide." },
+          { term: "HVAC", def: "Heating, Ventilation & Air Conditioning systems—part of hospital plants and machinery." },
+          { term: "Independent Procurement Partner", def: "Neutral intermediary between suppliers and healthcare providers." },
+          { term: "Insured Shipments", def: "Logistics coverage protecting goods against loss or damage in transit." },
+          { term: "Logistics & Delivery", def: "Air/sea/road freight, customs coordination, and insured transportation." },
+          { term: "Patient Monitoring", def: "Devices for observing physiological parameters (e.g., BP, SpO₂, ECG)." },
+          { term: "Point‑of‑Care (POC)", def: "Portable devices/tests used near the patient (e.g., ultrasound, glucometers)." },
+          { term: "Procurement", def: "Quotations, negotiation, POs, warranties, and related paperwork to obtain goods/services." },
+          { term: "PPE", def: "Personal Protective Equipment such as N95 masks and gloves." },
+          { term: "Reagents", def: "Substances used to cause reactions, part of laboratory consumables." },
+          { term: "Sourcing & Vetting", def: "Supplier search, specification matching, and documentation/compliance checks." },
+          { term: "Spec Matching", def: "Validating client specifications against supplier documentation." },
+          { term: "Third‑party install", def: "Installation carried out by approved external specialists, not by Meddent." },
+          { term: "UK‑based", def: "Headquarters and primary operations located in the United Kingdom." },
+        ];
+
+        const [openA, setOpenA] = useState({});
+        const toggleAnswer = (i) => setOpenA((p) => ({ ...p, [i]: !p[i] }));
+        const revealAll = () => setOpenA(Object.fromEntries(quiz.map((_, i) => [i, true])));
+
+        async function submitQuote() {
+          if (!form.agree) return;
+          if (WEB3FORMS_KEY.startsWith("REPLACE")) {
+            setResult({ ok: false, message: "Please replace the Web3Forms access key in the code before submitting." });
+            return;
+          }
+          if (form.email && !isValidEmail(form.email)) {
+            setResult({ ok: false, message: "Please provide a valid email address." });
+            return;
+          }
+
+          setSubmitting(true);
+          setResult(null);
+          try {
+            const fd = new FormData();
+            fd.append("access_key", WEB3FORMS_KEY);
+            fd.append("subject", "Quote Request – Meddent Global Solutions");
+            fd.append("from_name", form.fullName || "Meddent Website");
+            fd.append("email", form.email || "no-email@meddentglobalsolutions.com");
+            fd.append("company", form.company);
+            fd.append("phone", form.phone);
+            fd.append("location", `${form.city}, ${form.country}`);
+            fd.append("delivery", form.deliveryIncoterms);
+            fd.append("items", JSON.stringify(items));
+            files.forEach((f) => fd.append("files[]", f, f.name));
+
+            const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) {
+              setResult({ ok: true, message: "Request sent. We’ll contact you shortly." });
+            } else {
+              setResult({ ok: false, message: data.message || "Submission failed." });
+            }
+          } catch (e) {
+            setResult({ ok: false, message: e.message });
+          } finally {
+            setSubmitting(false);
+          }
+        }
+
+        const downloadJSON = () => {
+          const blob = new Blob([JSON.stringify(summary, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `MeddentQuoteRequest_${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        const mailtoLink = () => {
+          const subject = encodeURIComponent("Quote Request – Meddent Global Solutions");
+          const lines = items.map((i, idx) => \`\${idx + 1}. \${i.name || "<item>"} — Qty: \${i.quantity} — Notes: \${i.notes || "-"}\`).join("%0D%0A");
+          const body = encodeURIComponent(
+            \`Hello Meddent Team,%0D%0A%0D%0APlease provide a quotation for the attached/requested items.%0D%0A%0D%0AContact:%0D%0A- Name: \${form.fullName}%0D%0A- Company: \${form.company}%0D%0A- Email: \${form.email}%0D%0A- Phone: \${form.phone}%0D%0A- Location: \${form.city}, \${form.country}%0D%0A- Delivery: \${form.deliveryIncoterms}%0D%0A%0D%0AItems:%0D%0A\${lines}%0D%0A%0D%0A(Attached files cannot be sent via this link; please reply with upload instructions if needed.)%0D%0A%0D%0AThanks.\`
+          );
+          return \`mailto:sales@meddentglobalsolutions.com?subject=\${subject}&body=\${body}\`;
+        };
+
+        return (
+          <div className="min-h-screen w-full bg-white text-slate-900">
+            {/* Header */}
+            <header className="sticky top-0 z-40 backdrop-blur bg-white/80 border-b border-slate-200">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                <div className="flex items-center gap-3">
+                  <img src={LOGO_DATA_URI} alt="Meddent Global Solutions logo" className="h-10 w-10 rounded-full ring-2 ring-sky-200" />
+                  <div className="font-semibold text-slate-800">Meddent Global Solutions</div>
+                </div>
+                <nav className="hidden md:flex items-center gap-6 text-sm">
+                  <a href="#services" className="hover:text-sky-700">Services</a>
+                  <a href="#categories" className="hover:text-sky-700">Categories</a>
+                  <a href="#process" className="hover:text-sky-700">How it works</a>
+                  <a href="#quote" className="hover:text-sky-700">Request a quote</a>
+                  <a href="#videos" className="hover:text-sky-700">Videos</a>
+                  <a href="#study" className="hover:text-sky-700">Study Guide</a>
+                </nav>
+                <a href="#quote" className="inline-flex items-center rounded-xl bg-sky-600 px-4 py-2 text-white shadow-sm hover:bg-sky-700">Get a Quote</a>
+              </div>
+            </header>
+
+            {/* Hero */}
+            <section className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-white to-white">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
+                <div>
+                  <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+                    Reliable Sourcing & Delivery of Medical Equipment & Consumables
+                  </h1>
+                  <p className="mt-5 text-lg text-slate-700">
+                    I’m a Biomedical Scientist building <span className="font-semibold">Meddent Global Solutions</span>, a UK-based
+                    procurement partner delivering from large-scale hospital machinery to portable devices and everyday consumables — locally and internationally.
+                  </p>
+                  <div className="mt-8 flex gap-3">
+                    <a href="#quote" className="rounded-xl bg-sky-600 text-white px-5 py-3 font-medium shadow hover:bg-sky-700">Request a Quote</a>
+                    <a href="#services" className="rounded-xl border border-sky-200 text-sky-700 px-5 py-3 font-medium hover:bg-sky-50">Explore Services</a>
+                  </div>
+                  <dl className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    {[
+                      ["Global delivery", "Door-to-door options"],
+                      ["Third‑party install", "We coordinate only"],
+                      ["No training", "Supplier provides"],
+                      ["Long‑term supply", "Consumables & spares"],
+                    ].map(([t, s]) => (
+                      <div key={t} className="rounded-2xl border border-sky-100 bg-white p-4 shadow-sm">
+                        <dt className="text-sm font-semibold text-slate-800">{t}</dt>
+                        <dd className="text-xs text-slate-600">{s}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+                <div className="relative">
+                  <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-sky-100 to-transparent blur-2xl"></div>
+                  <div className="relative rounded-3xl border border-sky-100 bg-white shadow-xl p-6">
+                    <img src={LOGO_DATA_URI} alt="Meddent globe logo" className="mx-auto h-24 w-24" />
+                    <p className="mt-4 text-center text-slate-600">
+                      "From A to B, on time." We handle sourcing and delivery so you can focus on care.
+                    </p>
+                    <ul className="mt-4 text-sm text-slate-700 space-y-2">
+                      <li>• Diagnostic devices (e.g., dialysis consoles, FES machines, print/ID scanners)</li>
+                      <li>• Hospital plants and machinery (imaging, sterilisation, HVAC, oxygen)</li>
+                      <li>• Portables & point‑of‑care (monitors, glucometers, ultrasound)</li>
+                      <li>• Everyday consumables (PPE, dental, lab reagents, syringes)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Services */}
+            <section id="services" className="py-16 bg-white">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h2 className="text-3xl font-bold text-slate-900">What we do</h2>
+                <p className="mt-2 text-slate-600 max-w-3xl">
+                  We operate as an independent procurement partner (middleman). Installation is handled by approved third parties and
+                  equipment training remains the responsibility of the manufacturer/supplier.
+                </p>
+                <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[
+                    { title: "Sourcing & Vetting", text: "Global supplier search, spec matching, documentation & compliance checks." },
+                    { title: "Procurement", text: "Quotations, negotiation, purchase orders, warranties, and paperwork." },
+                    { title: "Logistics & Delivery", text: "Air/sea/road freight, customs & duties coordination, insured shipments." },
+                    { title: "Aftercare Supply", text: "Long‑term consumables & spares supply to keep your facilities running." },
+                  ].map((c) => (
+                    <div key={c.title} className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                      <h3 className="font-semibold text-slate-800">{c.title}</h3>
+                      <p className="mt-2 text-sm text-slate-600">{c.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Categories */}
+            <section id="categories" className="py-16 bg-sky-50/50">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="flex items-end justify-between">
+                  <h2 className="text-3xl font-bold text-slate-900">Product categories</h2>
+                  <div className="flex gap-2">
+                    {[
+                      ["machinery", "Plants & Machinery"],
+                      ["diagnostics", "Diagnostics"],
+                      ["rehab", "Rehab & Therapy"],
+                      ["dental", "Dental & Consumables"],
+                      ["portable", "Portables & POC"],
+                    ].map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setActiveTab(key)}
+                        className={\`rounded-full px-4 py-2 text-sm border \${activeTab === key ? "bg-sky-600 text-white border-sky-600" : "bg-white text-sky-700 border-sky-200 hover:bg-sky-50"}\`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {(
+                    {
+                      machinery: [
+                        ["Central Sterile Supply (CSSD)", "Sterilisers, washers, packaging lines"],
+                        ["Medical Gas & Oxygen Plants", "PSA oxygen, manifolds, pipelines"],
+                        ["Imaging Support", "UPS, cooling, shielding, accessories"],
+                      ],
+                      diagnostics: [
+                        ["Dialysis & Renal", "Dialysis consoles, RO water units"],
+                        ["FES & Neuro Devices", "Functional electrical stimulation units"],
+                        ["Scanners & ID", "Label/print scanners, PACS accessories"],
+                      ],
+                      rehab: [
+                        ["Physio & Rehab", "TENS, ultrasound therapy, mobility aids"],
+                        ["OT & Assistive Tech", "ADL tools, seating systems"],
+                        ["Beds & Furniture", "Hospital beds, trolleys, cabinets"],
+                      ],
+                      dental: [
+                        ["Dental Chairs & Units", "Compressors, suction, LEDs"],
+                        ["Instruments & Kits", "Handpieces, mirrors, scalers"],
+                        ["Consumables", "Gloves, masks, syringes, reagents"],
+                      ],
+                      portable: [
+                        ["Patient Monitoring", "BP monitors, pulse oximeters, ECG"],
+                        ["Point‑of‑Care", "Portable ultrasound, glucometers"],
+                        ["Lab Portables", "Centrifuges, incubators, pipettes"],
+                      ],
+                    }
+                  )[activeTab].map(([title, text]) => (
+                    <div key={title} className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                      <h3 className="font-semibold text-slate-800">{title}</h3>
+                      <p className="mt-2 text-sm text-slate-600">{text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Process */}
+            <section id="process" className="py-16 bg-white">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h2 className="text-3xl font-bold text-slate-900">How it works</h2>
+                <ol className="mt-6 grid gap-6 md:grid-cols-5">
+                  {[
+                    ["1. Tell us what you need", "Use the quote builder below or upload your list."],
+                    ["2. Spec & compliance check", "We validate against supplier documentation."],
+                    ["3. Quotes & timelines", "We negotiate terms and share options."],
+                    ["4. Delivery from A to B", "Freight, customs, insurance handled."],
+                    ["5. Install & training", "Managed by third‑party / supplier only."],
+                  ].map(([t, s]) => (
+                    <li key={t} className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+                      <div className="font-semibold text-slate-800">{t}</div>
+                      <div className="text-sm text-slate-600">{s}</div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </section>
+
+            {/* Quote Builder */}
+            <section id="quote" className="py-16 bg-sky-50/50">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="flex items-end justify-between">
+                  <h2 className="text-3xl font-bold text-slate-900">Request a quotation</h2>
+                  <p className="text-sm text-slate-600 max-w-xl">
+                    Add items manually or upload your list (CSV/XLSX/PDF/DOC). We’ll respond with pricing and timelines. Installation & equipment training are handled by the original suppliers/approved installers.
+                  </p>
+                </div>
+
+                {/* Contact */}
+                <div className="mt-8 grid lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                    <h3 className="font-semibold text-slate-800">Build your list</h3>
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="min-w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-slate-600">
+                            <th className="py-2 pr-3">Item/Model</th>
+                            <th className="py-2 pr-3 w-24">Qty</th>
+                            <th className="py-2 pr-3">Notes (brand/spec, urgency)</th>
+                            <th className="py-2"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items.map((i) => (
+                            <tr key={i.id} className="border-t border-slate-100">
+                              <td className="py-2 pr-3">
+                                <input
+                                  value={i.name}
+                                  onChange={(e) => updateItem(i.id, "name", e.target.value)}
+                                  placeholder="e.g., FES device, Dialysis console, N95 masks"
+                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                                />
+                              </td>
+                              <td className="py-2 pr-3">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={i.quantity}
+                                  onChange={(e) => updateItem(i.id, "quantity", Number(e.target.value))}
+                                  className="w-24 rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                                />
+                              </td>
+                              <td className="py-2 pr-3">
+                                <input
+                                  value={i.notes}
+                                  onChange={(e) => updateItem(i.id, "notes", e.target.value)}
+                                  placeholder="Preferred brand/spec, delivery deadline, etc."
+                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                                />
+                              </td>
+                              <td className="py-2">
+                                <button onClick={() => removeItem(i.id)} className="text-sky-700 hover:underline">Remove</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="mt-3">
+                      <button onClick={addItem} className="rounded-xl border border-sky-200 bg-white px-4 py-2 text-sky-700 hover:bg-sky-50">
+                        + Add another item
+                      </button>
+                    </div>
+
+                    {/* Upload */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-slate-800">Upload your list (optional)</label>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".csv,.xlsx,.xls,.pdf,.doc,.docx"
+                        onChange={onFileChange}
+                        className="mt-2 block w-full rounded-xl border border-dashed border-sky-300 p-4 text-slate-600"
+                      />
+                      {files.length > 0 && (
+                        <ul className="mt-2 text-sm text-slate-600 list-disc pl-5">
+                          {files.map((f, idx) => (
+                            <li key={idx}>{f.name}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                    <h3 className="font-semibold text-slate-800">Your details</h3>
+                    <div className="mt-4 space-y-3">
+                      {["fullName", "company", "email", "phone", "city", "country"].map((key) => (
+                        <div key={key}>
+                          <label className="block text-xs text-slate-600 mb-1 capitalize">{key.replace(/([A-Z])/g, " $1")}</label>
+                          <input
+                            value={form[key]}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const next = { ...form, [key]: val };
+                              setForm(next);
+                              if (key === "email" && val && !isValidEmail(val)) {
+                                setResult({ ok: false, message: "Please provide a valid email address." });
+                              } else if (key === "email") {
+                                setResult(null);
+                              }
+                            }}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                          />
+                        </div>
+                      ))}
+                      <div>
+                        <label className="block text-xs text-slate-600 mb-1">Delivery preference</label>
+                        <select
+                          value={form.deliveryIncoterms}
+                          onChange={(e) => setForm({ ...form, deliveryIncoterms: e.target.value })}
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                        >
+                          {["Door-to-door", "Airport only", "Seaport only", "Ex-works"].map((v) => (
+                            <option key={v} value={v}>{v}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <label className="flex items-start gap-2 text-xs text-slate-600">
+                        <input
+                          type="checkbox"
+                          checked={form.agree}
+                          onChange={(e) => setForm({ ...form, agree: e.target.checked })}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          I acknowledge Meddent Global Solutions acts as a procurement & delivery partner. Installation and
+                          operational training are performed by third parties / manufacturers only.
+                        </span>
+                      </label>
+                      <div className="flex gap-2 pt-2 flex-wrap">
+                        <button
+                          type="button"
+                          disabled={!form.agree || submitting}
+                          onClick={submitQuote}
+                          className={\`rounded-xl px-4 py-2 font-medium text-white \${form.agree && !submitting ? "bg-sky-600 hover:bg-sky-700" : "bg-slate-300 cursor-not-allowed"}\`}
+                        >
+                          {submitting ? "Sending…" : "Submit request"}
+                        </button>
+                        <button
+                          disabled={!form.agree}
+                          onClick={downloadJSON}
+                          className={\`rounded-xl px-4 py-2 font-medium text-sky-700 border \${form.agree ? "border-sky-300 hover:bg-sky-50" : "border-slate-200 cursor-not-allowed text-slate-400"}\`}
+                        >
+                          Download summary
+                        </button>
+                        <a
+                          href={mailtoLink()}
+                          onClick={(e) => { if (!form.agree) { e.preventDefault(); } }}
+                          className={\`rounded-xl px-4 py-2 font-medium text-sky-700 border \${form.agree ? "border-sky-300 hover:bg-sky-50" : "border-slate-200 pointer-events-none text-slate-400"}\`}
+                        >
+                          Email us
+                        </a>
+                      </div>
+                      {result && (
+                        <div className={\`mt-3 text-sm \${result.ok ? "text-green-700" : "text-rose-700"}\`}>
+                          {result.message}
+                        </div>
+                      )}
+                      <p className="text-[11px] text-slate-500">
+                        Your data is sent securely to our form backend (Web3Forms). We’ll respond with pricing and next steps. Replace the access key in code.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  <strong>Important:</strong> Meddent Global Solutions acts strictly as a sourcing & delivery partner. We do not provide
+                  clinical/operational training or installation. Always follow the manufacturer’s instructions and consult the supplier for
+                  commissioning and user training.
+                </div>
+              </div>
+            </section>
+
+            {/* Videos */}
+            <section id="videos" className="py-16 bg-white">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h2 className="text-3xl font-bold text-slate-900">Equipment videos (sample)</h2>
+                <p className="mt-2 text-slate-600 max-w-3xl">
+                  Showcase how machines work to build buyer confidence. Replace the placeholder video below with your own demos — aim for short, clear clips with captions.
+                </p>
+                <div className="mt-6 grid lg:grid-cols-2 gap-6">
+                  <div className="aspect-video w-full overflow-hidden rounded-2xl border border-sky-100 shadow-sm">
+                    {/* Replace VIDEO_ID with your uploaded video (e.g., YouTube, Vimeo). */}
+                    <iframe
+                      className="w-full h-full"
+                      src="https://www.youtube.com/embed/VIDEO_ID"
+                      title="Medical device demo (sample)"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  </div>
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-6">
+                    <h3 className="font-semibold text-slate-800">Why videos matter</h3>
+                    <ul className="mt-3 space-y-2 text-slate-700 text-sm">
+                      <li>• Explain value quickly — show core features, safety, and maintenance basics.</li>
+                      <li>• Build authenticity — you as a Biomedical Scientist narrate the key specs.</li>
+                      <li>• Improve conversions — add call‑to‑action links to request a quote.</li>
+                    </ul>
+                    <a href="#quote" className="mt-4 inline-block rounded-xl bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">Add items & request a quote</a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Study Guide */}
+            <section id="study" className="py-16 bg-sky-50/50">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h2 className="text-3xl font-bold text-slate-900">Study Guide</h2>
+                <p className="mt-2 text-slate-600 max-w-3xl">A quick study pack to brief teams and clients on how Meddent Global Solutions works.</p>
+
+                <div className="mt-8 grid lg:grid-cols-2 gap-6">
+                  <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                    <h3 className="font-semibold text-slate-800">Quiz</h3>
+                    <ol className="mt-3 space-y-3 list-decimal pl-5">
+                      {quiz.map((qa, i) => (
+                        <li key={i} className="text-sm">
+                          <div className="font-medium text-slate-800">{qa.q}</div>
+                          <button
+                            type="button"
+                            onClick={() => toggleAnswer(i)}
+                            className="mt-1 text-xs text-sky-700 hover:underline"
+                          >
+                            {openA[i] ? "Hide answer" : "Show answer"}
+                          </button>
+                          {openA[i] && (
+                            <div className="mt-2 rounded-lg bg-sky-50 p-3 text-slate-700">{qa.a}</div>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                    <button
+                      type="button"
+                      onClick={revealAll}
+                      className="mt-4 rounded-xl border border-sky-200 bg-white px-4 py-2 text-sky-700 hover:bg-sky-50"
+                    >
+                      Reveal all answers
+                    </button>
+                  </div>
+
+                  <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                    <h3 className="font-semibold text-slate-800">Answer Key</h3>
+                    <ol className="mt-3 space-y-3 list-decimal pl-5 text-sm text-slate-700">
+                      {quiz.map((qa, i) => (
+                        <li key={i}>{qa.a}</li>
+                      ))}
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid lg:grid-cols-2 gap-6">
+                  <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                    <h3 className="font-semibold text-slate-800">Essay Questions</h3>
+                    <ol className="mt-3 space-y-2 list-decimal pl-5 text-sm text-slate-700">
+                      {essays.map((e, i) => (
+                        <li key={i}>{e}</li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+                    <h3 className="font-semibold text-slate-800">Glossary of Key Terms</h3>
+                    <dl className="mt-3 divide-y divide-slate-100">
+                      {glossary.map((g, i) => (
+                        <div key={i} className="py-3">
+                          <dt className="text-sm font-semibold text-slate-800">{g.term}</dt>
+                          <dd className="text-sm text-slate-700 mt-1">{g.def}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="bg-slate-900 text-slate-100">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid md:grid-cols-4 gap-8">
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-3">
+                    <img src={LOGO_DATA_URI} alt="Meddent Global Solutions logo" className="h-10 w-10 rounded-full ring-2 ring-sky-400" />
+                    <div className="font-semibold">Meddent Global Solutions</div>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-300 max-w-lg">
+                    UK‑based procurement & delivery partner for medical equipment and consumables. Serving healthcare providers worldwide.
+                  </p>
+                </div>
+                <div>
+                  <div className="font-semibold">Contact</div>
+                  <ul className="mt-2 text-sm text-slate-300 space-y-1">
+                    <li>Email: sales@meddentglobalsolutions.com</li>
+                    <li>Phone: +44 0000 000000</li>
+                    <li>HQ: London, United Kingdom</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="font-semibold">Legal</div>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Meddent Global Solutions acts as an intermediary for sourcing and delivery only. Installation and training are provided by third‑party specialists/manufacturers.
+                  </p>
+                </div>
+              </div>
+              <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-400">
+                ©️ {new Date().getFullYear()} Meddent Global Solutions. All rights reserved.
+              </div>
+            </footer>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<MeddentLanding />);
+    </script>
+  </body>
+</html>
